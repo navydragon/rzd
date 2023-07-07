@@ -69,13 +69,12 @@ def load_data():
     # Проверка, были ли данные уже загружены
     if loaded_data is None:
         # Загрузка файла и создание dataframe
-        df = pd.read_csv('data/output.csv', encoding='utf-8')
+        df = pd.read_csv('data/output_grouped.csv', encoding='utf-8')
 
         # Выполните здесь необходимую предварительную обработку данных, если требуется
 
         # Кэширование данных
         loaded_data = df
-
     return loaded_data
 
 

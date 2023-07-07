@@ -29,7 +29,10 @@ app.layout = html.Div([
 # app.layout = dbc.Row(
 #         [dbc.Col(sidebar(), width=2), dbc.Col(dash.page_container, width=10)]
 #     )
+debug = True
 
-webbrowser.open_new("http://127.0.0.1:8050/")
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=debug)
+
+if debug == False:
+    webbrowser.open_new("http://127.0.0.1:8050/")
