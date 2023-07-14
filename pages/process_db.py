@@ -5,7 +5,7 @@ from pages.constants import Constants
 import pandas as pd
 import time
 
-dash.register_page(__name__, name='Обработка данных', path='/process_db', order=99)
+# dash.register_page(__name__, name='Обработка данных', path='/process_db', order=99)
 
 
 def layout():
@@ -87,7 +87,7 @@ def layout():
     )
 
     columns_to_drop = [
-        'index','Наименование дороги входа',
+        'index','Наименование станции входа',
         'Наименование станции выхода',
         'Наим отправителя',
         'ключ_маршруты_грузы',
@@ -115,8 +115,8 @@ def layout():
     gr_df = df.groupby([
         'Наименование груза ЦО-12',
         'Код группы по ЦО-12',
+        'Наименование дороги входа',
         'Наименование дороги выхода',
-        'Наименование станции входа',
         'Холдинг отправителя',
         'Вид сообщения',
         'Направление'
@@ -133,7 +133,7 @@ def layout():
     )
 
     gr_df.to_csv('data/output_grouped.csv', index=False)
-    # gr_df.to_excel('data/output_grouped.xlsx', index=False)
+    gr_df.to_excel('data/output_grouped.xlsx', index=False)
     # df.to_csv('data/output.csv', index=False)
     execution_time = time.time() - start_time
     return html.Div([

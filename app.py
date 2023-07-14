@@ -31,8 +31,9 @@ app.layout = html.Div([
 #     )
 debug = True
 
+if debug == False:
+    webbrowser.open_new("http://127.0.0.1:8050/")
+
 if __name__ == '__main__':
     app.run_server(debug=debug)
 
-if debug == False:
-    webbrowser.open_new("http://127.0.0.1:8050/")

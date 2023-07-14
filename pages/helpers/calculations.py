@@ -124,7 +124,7 @@ def group_data(df, params):
         agg_params['pp_' + params['year_variant'][0]] = 'sum'
         agg_params['delta_' + params['year_variant'][0]] = 'sum'
 
-    sorting_param = 'Код группы по ЦО-12' if group1_variant == 'Наименование груза ЦО-12' else CON.EPL
+    sorting_param = 'Код группы по ЦО-12' if group1_variant == 'Наименование груза ЦО-12' else CON.PR_P
     sorting_asc = True if group1_variant == 'Наименование груза ЦО-12' else False
 
     group_parameter = [group1_variant] if group2_variant is None else [group1_variant, group2_variant]
@@ -135,9 +135,9 @@ def group_data(df, params):
         df_high = df_grouped.groupby(group1_variant).agg(
             agg_params).reset_index()
         df_high[group2_variant] = 'ИТОГО'
-        df_grouped = df_grouped.append(df_high, ignore_index=True)
-        df_grouped = df_grouped.sort_values(by=[sorting_param, 'so_start'],
-                                            ascending=[True, False])
+        df_grouped = pd.concat([df_grouped, df_high], ignore_index=True)
+        df_grouped = df_grouped.sort_values(by=[sorting_param, CON.PR_P],
+                                            ascending=[sorting_asc, False])
 
     # операции со сгруппированными данными
     new_t = 'so_' + params['year_variant'][0] if params['year_variant'][0] != '2026' else 'so_start'

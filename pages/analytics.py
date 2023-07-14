@@ -26,7 +26,7 @@ dash.register_page(__name__, name="Аналитика", path='/', order=3)
 
 
 
-SUFFIX = '_parameters'
+SUFFIX = '_analytics'
 
 # константы
 START_YEAR = 2026
@@ -55,6 +55,7 @@ def layout():
     return html.Div([
         html.H2('Аналитика', className="m-4"),
         sp.draw_panel(SUFFIX),
+        market_conditions(),
         selectors(),
         # html.H3('Стоимостная основа', className='m-4'),
         dcc.Loading(
@@ -202,11 +203,11 @@ def update_dashboard(
     colors = ['#C2DFFF', '#FFD8B1', '#B1FFC2', '#FFB1C2', '#E8B1FF', '#B1FFDF',
               '#FFDFA3', '#A3FFDF', '#DFDFA3', '#A3DFFF', '#DFA3FF']
     head1 = html.H4('Стоимостная основа по видам грузов', className='mt-4')
-    fig = px.pie(df_fig, values=CON.PR_P, names='Наименование груза ЦО-12',
-                 title='Действующие тарифные условия', color_discrete_sequence=px.colors.sequential.BuGn[::-1])
-    fig.data[0].hovertemplate = '%{label}<br>Значение: %{value} тыс. руб.'
-    graph2 = dcc.Graph(figure=fig)
-    fig = px.pie(df_fig, values=CON.PR_P, names='Наименование груза ЦО-12', title='Действующие тарифные условия (в другом цвете)', color_discrete_sequence=px.colors.sequential.Teal)
+    # fig = px.pie(df_fig, values=CON.PR_P, names='Наименование груза ЦО-12',
+    #              title='Действующие тарифные условия', color_discrete_sequence=px.colors.sequential.BuGn[::-1])
+    # fig.data[0].hovertemplate = '%{label}<br>Значение: %{value} тыс. руб.'
+    # graph2 = dcc.Graph(figure=fig)
+    fig = px.pie(df_fig, values=CON.PR_P, names='Наименование груза ЦО-12', title='Действующие тарифные условия', color_discrete_sequence=px.colors.sequential.RdBu[::-1])
     fig.data[0].hovertemplate = '%{label}<br>Значение: %{value} тыс. руб.'
     graph3 = dcc.Graph(figure=fig)
 
@@ -227,7 +228,7 @@ def update_dashboard(
     graph5 = dcc.Graph(figure=fig)
     so_by_cargos = dbc.Row([
         head1,
-        dbc.Col([graph2], width=6),
+        # dbc.Col([graph2], width=6),
         dbc.Col([graph3],width=6),
         dbc.Col([graph4], width=6),
         dbc.Col([graph5], width=6)
@@ -238,6 +239,52 @@ def update_dashboard(
     )
 
 
+def market_conditions():
+    return html.Div([
+        dbc.Button(
+            "Учет коньюнктуры",
+            id="collapse_market_button",
+            className="mb-3 mx-2",
+            color="primary",
+            n_clicks=0,
+        ),
+        dbc.Collapse(
+            dbc.Card([
+                dbc.CardBody([dbc.Row([
+                    html.H5("Каменный уголь, экспортные цены, $"),
+                    dbc.Col([
+                    html.Label('Восток', className="fw-bold"),
+                    dcc.Slider(
+                        id='market_coal_east',
+                        marks={0: 'Текущие', 50: '50', 100: '100', 150: '150', 200: '200'},
+                        min=0,max=200,step=None,value=0
+                    )],width=4),
+                    dbc.Col([
+                        html.Label('Запад', className="fw-bold"),
+                        dcc.Slider(
+                            id='market_coal_west',
+                            marks={0: 'Текущие', 50: '50', 100: '100', 150: '150', 200: '200'},
+                            min=0, max=200, step=None, value=0
+                        )], width=4),
+                    dbc.Col([
+                        html.Label('Юг', className="fw-bold"),
+                        dcc.Slider(
+                            id='market_coal_south',
+                            marks={0: 'Текущие', 50: '50', 100: '100', 150: '150', 200: '200'},
+                            min=0, max=200, step=None, value=0
+                        )], width=4)
+        ])])]), id="collapse_market", is_open = True, className='mb-4')
+    ])
+
+@callback(
+    Output("collapse_market", "is_open"),
+    [Input("collapse_market_button", "n_clicks")],
+    [State("collapse_market", "is_open")],
+)
+def toggle_collapse_filters(n, is_open):
+    if n:
+        return not is_open
+    return is_open
 
 
 def selectors():
