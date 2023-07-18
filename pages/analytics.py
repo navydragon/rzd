@@ -93,18 +93,23 @@ def layout():
     Input('message_filter', 'value'),
     Input('side_filter', 'value'),
     Input('holding_filter', 'value'),
+    Input('market_coal_west','value'),
+    Input('market_coal_east','value'),
+    Input('market_coal_south','value')
 )
 def update_dashboard(
-        costs_base_variant,
-        costs_variant,
-        approach_variant,
-        direction_variant,
-        turnover_variant,
-        invest_variant,
-        year_variant,
-        invest_percent,
-        group1_variant,group2_variant,
-        cargo_filter, message_filter, side_filter, holding_filter):
+    costs_base_variant,
+    costs_variant,
+    approach_variant,
+    direction_variant,
+    turnover_variant,
+    invest_variant,
+    year_variant,
+    invest_percent,
+    group1_variant,group2_variant,
+    cargo_filter, message_filter, side_filter, holding_filter,
+    market_coal_west, market_coal_east, market_coal_south,
+):
     # selected_label = next((option['label'] for option in turnover_variant if option['value'] == group1_variant), None)
     year_variants = year_variant
     if not isinstance(year_variants, list):
@@ -125,6 +130,13 @@ def update_dashboard(
         "invest_percent": invest_percent,
         "group1_variant": group1_variant,
         "group2_variant": group2_variant,
+        "market": {
+            "coal": {
+                "west": market_coal_west,
+                "east": market_coal_east,
+                "south": market_coal_south
+            }
+        }
     }
 
     # Расчет на уровне маршрутов
