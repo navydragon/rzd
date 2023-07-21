@@ -1,5 +1,5 @@
 import dash
-from dash import html, dcc,callback, Input, Output, State
+from dash import html, dcc,callback, Input, Output, State, ALL
 from pages.helpers import scenario_parameters as sp
 
 import dash_bootstrap_components as dbc
@@ -7,7 +7,7 @@ import pandas as pd
 
 import random
 import string
-
+import json
 
 def generate_random_string(length):
     """Генерирует случайную строку заданной длины"""
@@ -16,10 +16,27 @@ def generate_random_string(length):
 
 dash.register_page(__name__, name="Сценарии", path='/scenarios', order=4)
 
+def get_state_objects(suffix):
+    return [
+        State('scenario_name', 'value'),
+        State('costs_base_variant' + suffix, 'value'),
+        State('costs_variant' + suffix, 'value'),
+        State('approach_variant' + suffix, 'value'),
+        State('direction_variant' + suffix, 'value'),
+        State('turnover_variant' + suffix, 'value'),
+        State('invest_variant' + suffix, 'value'),
+        State('year_variant' + suffix, 'value'),
+        State('invest_percent' + suffix, 'value'),
+        State('card-container', 'children'),
+    ]
+
 SUFFIX = 'scenarios'
+state_objects = get_state_objects(SUFFIX)
+
 
 # считываем параметры сценариев
-scenarios_df = pd.read_csv('data/scenarios.csv')
+scenarios_df = pd.read_csv('data/scenarios.csv').reset_index(drop=True)
+
 
 # регистрация callback
 sp.switch_base_variant_callback(SUFFIX)
@@ -28,65 +45,15 @@ sp.turnover_variant_callback(SUFFIX)
 
 
 def layout():
-    card1 = dbc.Card(
-        [
-            dbc.CardBody(
-                [
-                    html.H4("Сценарий №1", className="card-title"),
-                    html.P("Описание параметров сценария №1...",
-                           className="card-text", ),
-                    html.Ul([
-                        html.Li('Горизонт расчета - 2026 г.'), html.Li('...'),
-                    ]),
-                    dbc.ButtonGroup([
-                        dbc.Button("Рассчитать", color="primary"),
-                        dbc.Button("Изменить", color="info"),
-                        dbc.Button("Удалить", color="danger"),
-                    ])
-                ]
-            ),
-        ], className='my-2')
-    card2 = dbc.Card(
-        [
-            dbc.CardBody(
-                [
-                    html.H4("Сценарий №2", className="card-title"),
-                    html.P("Описание параметров сценария №2...",
-                           className="card-text", ),
-                    html.Ul([
-                        html.Li('Горизонт расчета - 2026 г.'), html.Li('...'),
-                    ]),
-                    dbc.ButtonGroup([
-                        dbc.Button("Рассчитать", color="primary"),
-                        dbc.Button("Изменить", color="info"),
-                        dbc.Button("Удалить", color="danger"),
-                    ])
-                ]
-            ),
-        ], className='my-2')
-
-    card3 = dbc.Card(
-        [
-            dbc.CardBody(
-                [
-                    html.H4("Сценарий №3", className="card-title"),
-                    html.P("Описание параметров сценария №3...",
-                           className="card-text", ),
-                    html.Ul([
-                        html.Li('Горизонт расчета - 2026 г.'), html.Li('...'),
-                    ]),
-                    dbc.ButtonGroup([
-                        dbc.Button("Рассчитать", color="primary"),
-                        dbc.Button("Изменить", color="info"),
-                        dbc.Button("Удалить", color="danger"),
-                    ])
-                ]
-            ),
-        ], className='my-2')
+    global scenarios_df
+    cards = []
+    for index, row in scenarios_df.iterrows():
+        card = draw_card(row)
+        cards.append(card)
 
     modal = html.Div(
         [
-            dbc.Button("+ Добавить сценарий",id="open",n_clicks=0, color="success"),
+            dbc.Button("+ Добавить сценарий",id="open_button",n_clicks=0, color="success"),
             dbc.Modal(
                 [
                     dbc.ModalHeader(dbc.ModalTitle("Добавить новый сценарий")),
@@ -96,8 +63,8 @@ def layout():
                         sp.draw_panel(SUFFIX)
                     ]),
                     dbc.ModalFooter([
-                        dbc.Button("Добавить", color='success', id="create", className="ml-auto", n_clicks=0),
-                        dbc.Button("Закрыть", id="close", className="ml-auto", n_clicks=0)
+                        dbc.Button("Добавить", color='success', id="create-button", className="ml-auto", n_clicks=0),
+                        dbc.Button("Закрыть", id="close_button", className="ml-auto", n_clicks=0)
                     ]),
                 ],
                 id="modal",
@@ -110,65 +77,100 @@ def layout():
     return html.Div([
         html.H2('Сценарии', className="m-4"),
         modal,
-        html.Div([
-            card1, card2, card3
-        ])
+        html.Div(cards, id='card-container')
     ], className='m-2')
+
 
 @callback(
     Output("modal", "is_open"),
-    [Input("open", "n_clicks"), Input("close", "n_clicks")],
-    [State("modal", "is_open")],
+    Input("open_button", "n_clicks"), Input("close_button", "n_clicks"),
+    prevent_initial_call = True
 )
-def toggle_modal(n1, n2, is_open):
-    if n1 or n2:
-        return not is_open
-    return is_open
+def open_modal(open_button, close_button):
+    # Получение индекса нажатой кнопки с помощью dash.callback_context
+    ctx = dash.callback_context
+    triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    if triggered_id == 'open_button':
+        return True
+    return False
 
 
+# добавить сценарий
+# @callback(
+#     [
+#         Output("close_button", "n_clicks"),
+#      ],
+#     [Input("create-button", "n_clicks")],
+#     State("close", "n_clicks"),
+#     *state_objects,
+#     prevent_initial_call = True
+# )
+# def create_scenario (n1, n2,
+#     *state_values
+# ):
+#
+#     return [n2+1]
 
 
 @callback(
-    [Output("close", "n_clicks")],
-    [Input("create", "n_clicks")],
-    State("close", "n_clicks"),
-    State('scenario_name', 'value'),
-    State('costs_base_variant' + SUFFIX, 'value'), # ЦПС/расходы
-    State('costs_variant' + SUFFIX, 'value'), # переменные/полные
-    State('approach_variant' + SUFFIX, 'value'), # дифференциация тарифов
-    State('direction_variant' + SUFFIX, 'value'), # ЦПС вариант
-    State('turnover_variant' + SUFFIX, 'value'),
-    State('invest_variant' + SUFFIX, 'value'),
-    State('year_variant' + SUFFIX, 'value'),
-    State('invest_percent' + SUFFIX, 'value'),
+    [Output('card-container', 'children'),
+    Output("close_button", "n_clicks")],
+    Input("create-button", "n_clicks"),
+    Input({'type': 'delete-button', 'index': ALL}, 'n_clicks'),
+    State('card-container', 'children'),
+    State('close_button', 'n_clicks'),
+    *state_objects,
     prevent_initial_call = True
 )
-def create_scenario (n1, n2,
-    scenario_name,
-    costs_base_variant,
-    costs_variant,
-    approach_variant,
-    direction_variant,
-    turnover_variant,
-    invest_variant,
-    year_variant,
-    invest_percent,
-):
+def handle_cards(create_button_clicks, delete_button_clicks, card_children,close_button_clicks, *state_values,):
+    # Получение индекса нажатой кнопки с помощью dash.callback_context
+    ctx = dash.callback_context
+    triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
     global scenarios_df
-    print(n1)
 
-    new_row = pd.Series({
-        'id': generate_random_string(6),
-        'name': scenario_name,
-        'costs_base_variant': costs_base_variant,
-        'costs_variant': costs_variant,
-        'approach_variant': approach_variant,
-        'direction_variant': direction_variant,
-        'turnover_variant': turnover_variant,
-        'invest_variant': invest_variant,
-        'year_variant': year_variant,
-        'invest_percent': invest_percent
-    })
-    scenarios_df = scenarios_df.append(new_row, ignore_index=True)
-    scenarios_df.to_csv('data/scenarios.csv', index=False)
-    return [n2+1]
+    if triggered_id == 'create-button':
+        new_row = pd.Series({
+            'id': generate_random_string(6),
+            'name': state_values[0],
+            'costs_base_variant': state_values[1],
+            'costs_variant': state_values[2],
+            'approach_variant': state_values[3],
+            'direction_variant': state_values[4],
+            'turnover_variant': state_values[5],
+            'invest_variant': state_values[6],
+            'year_variant': state_values[7],
+            'invest_percent': state_values[8]
+        })
+        #scenarios_df = scenarios_df.append(new_row, ignore_index=True)
+        #scenarios_df.to_csv('data/scenarios.csv', index=False)
+        updated_children = card_children + [draw_card(new_row)]
+        return updated_children, [close_button_clicks+1]
+
+    # удаляем
+    clicked_index = json.loads(triggered_id).get('index')
+    print (clicked_index)
+    # Удаление соответствующей карточки из списка
+    updated_children = [child for child in card_children if child['props']['id'] != clicked_index]
+
+    return updated_children, [0]
+
+
+def draw_card (row):
+    return dbc.Card(
+            [
+                dbc.CardBody(
+                    [
+                        html.H4(f"Сценарий «{row['name']}»", className="card-title"),
+                        html.P("Описание параметров сценария №1...",
+                               className="card-text", ),
+                        html.Ul([
+                            html.Li('Горизонт расчета - 2026 г.'), html.Li('...'),
+                        ]),
+                        dbc.ButtonGroup([
+                            dbc.Button("Рассчитать", color="primary"),
+                            dbc.Button("Изменить", color="info"),
+                            dbc.Button("Удалить", id={'type': 'delete-button', 'index': row['id']}, n_clicks=0, color="danger"),
+                        ])
+                    ]
+                ),
+            ], id=row.id, className='my-2')

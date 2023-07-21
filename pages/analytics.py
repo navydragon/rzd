@@ -61,6 +61,7 @@ def layout():
         dcc.Loading(
             id="loading",
             type="default",
+            fullscreen=True,
             children=[html.Div([], id='cost_basis_div', className='mx-4')]
         ),
         dbc.Button(
@@ -168,11 +169,14 @@ def update_dashboard(
     if params['year_variant'][0] == '2026':
         dty = df_grouped[CON.PR_P].sum() / 1000000
         nty = df_grouped['so_start'].sum() / 1000000
+        nty_market = df_grouped['so_market'].sum() / 1000000
         delta = nty - dty
+        delta_market = nty_market - dty
     else:
         dty = df_grouped['pp_'+params['year_variant'][0]].sum() / 1000000
         nty = df_grouped['so_'+params['year_variant'][0]].sum() / 1000000
         delta = nty - dty
+
 
     total_values = html.Div([
         dbc.Row([
@@ -184,7 +188,7 @@ def update_dashboard(
                         html.Span(' млрд. руб.')
                     ]
                 ),
-            ], color="light"), width=4),
+            ], color="light"), width=3),
             dbc.Col(dbc.Card([
                 dbc.CardHeader("Новые тарифные условия"),
                 dbc.CardBody(
@@ -193,7 +197,7 @@ def update_dashboard(
                         html.Span(' млрд. руб.')
                     ]
                 ),
-            ], color="light"), width=4),
+            ], color="light"), width=3),
             dbc.Col(dbc.Card([
                 dbc.CardHeader("Экономический эффект"),
                 dbc.CardBody(
@@ -202,10 +206,21 @@ def update_dashboard(
                         html.Span(' млрд. руб.')
                     ]
                 ),
-            ], color="light"), width=4),
+            ], color="light"), width=3),
+            dbc.Col(dbc.Card([
+                dbc.CardHeader("Эффект с учетом конъюнктуры"),
+                dbc.CardBody(
+                    [
+                        html.Label(round(delta_market), className="fw-bold"),
+                        html.Span(' млрд. руб.')
+                    ]
+                ),
+            ], color="light"), width=3),
         ])
 
     ], className="m-4", )
+
+
 
     df_fig = df.groupby(['Вид сообщения','Направление','Наименование груза ЦО-12']).agg(CON.AGG_PARAMS)
     df_fig.reset_index(inplace=True)
@@ -254,7 +269,7 @@ def update_dashboard(
 def market_conditions():
     return html.Div([
         dbc.Button(
-            "Учет коньюнктуры",
+            "Учет конъюнктуры",
             id="collapse_market_button",
             className="mb-3 mx-2",
             color="primary",
@@ -285,7 +300,7 @@ def market_conditions():
                             marks={0: 'Текущие', 50: '50', 100: '100', 150: '150', 200: '200'},
                             min=0, max=200, step=None, value=0
                         )], width=4)
-        ])])]), id="collapse_market", is_open = True, className='mb-4')
+        ])])]), id="collapse_market", is_open = False, className='mb-4')
     ])
 
 @callback(

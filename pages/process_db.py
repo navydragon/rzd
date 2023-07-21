@@ -5,12 +5,12 @@ from pages.constants import Constants
 import pandas as pd
 import time
 
-# dash.register_page(__name__, name='Обработка данных', path='/process_db', order=99)
+dash.register_page(__name__, name='Обработка данных', path='/process_db', order=99)
 
 
 def layout():
 
-    # return html.Div(['Выключено'])
+    return html.Div(['Выключено'])
     start_time = time.time()
     conn = sqlite3.connect('from/db3.db')
     # query = '''
@@ -104,6 +104,10 @@ def layout():
         CON.SO_SS: 'sum',
         CON.SO_3Z: 'sum',
         CON.SO_KB: 'sum',
+        CON.SO_PM_DIFF: 'sum',
+        CON.SO_3Z_DIFF: 'sum',
+        CON.SO_SS_DIFF: 'sum',
+        CON.SO_KB_DIFF: 'sum',
         CON.PER: 'sum',
         CON.POST: 'sum',
         CON.POL: 'sum',
@@ -131,6 +135,9 @@ def layout():
     gr_df['Доля от расходов на проекты по направлениям'] = gr_df.apply(
         lambda row: (row['Расходы полные, тыс. руб'] / grouped[row['Направление']]), axis=1
     )
+
+    gr_df['Доля условно-переменных расходов'] = gr_df['Условно-переменные расходы, тыс. руб'] / (gr_df['Условно-переменные расходы, тыс. руб'] + gr_df['Условно-постоянные расходы, тыс. руб'])
+    gr_df['Доля условно-постоянных расходов'] = gr_df['Условно-постоянные расходы, тыс. руб'] / (gr_df['Условно-переменные расходы, тыс. руб'] + gr_df['Условно-постоянные расходы, тыс. руб'])
 
     gr_df.to_csv('data/output_grouped.csv', index=False)
     gr_df.to_excel('data/output_grouped.xlsx', index=False)

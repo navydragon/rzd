@@ -42,6 +42,7 @@ def calculate_data(df, index_df, params):
 
     df['growth_percent'] = (df['so_start'] - df[CON.PR_P]) / df[CON.PR_P] * 100
     df['market_coefficient'] = df.apply(market_coefficient, axis=1, args=(params.get("market"),))
+
     if params['year_variant'][0] != '2026':
         if params['turnover_variant'] == 'option2':
             fp_df = pd.read_csv('data/initial/fin_plan_types.csv')
@@ -93,6 +94,11 @@ def calculate_data(df, index_df, params):
             df['growth_percent'] = ( df['so_' + year] - df['pp_' + year]) / df[
                 df['pp_' + year]] * 100
             df['delta_' + year] = df['so_' + year] - df['pp_' + year]
+
+
+    df['so_market'] = df['so_start'] * df[CON.PER_DOL] * df['market_coefficient'] + df['so_start'] * df[CON.POST_DOL]
+    # df['so_market'] = df['so_start'] * df['market_coefficient']
+    # df.to_excel('data/test.xlsx', index=False)
     return df
 
 
@@ -118,6 +124,7 @@ def group_data(df, params):
         CON.INVEST_DIRECTION: 'sum',
         CON.VAG: 'sum',
         'so_start': 'sum',
+        'so_market': 'sum',
         'so_column': 'sum',
         'delta_start': 'sum',
         'Код группы по ЦО-12': 'min'
@@ -197,15 +204,15 @@ def get_so_column(params):
 
 market_df = pd.read_excel('data/market/market.xlsx')
 def market_coefficient(row, market_params):
-    if row['Вид сообщения'] == 'импорт': return 1
-    if row['Вид сообщения'] == 'транзит': return 1
     if row[CON.CARGO] != 'Уголь каменный': return 1
-    if row['Вид сообщения'] == 'внутрироссийское':
+    if row['Вид сообщения'] == 'импорт': return 1
+    elif row['Вид сообщения'] == 'транзит': return 1
+    elif row['Вид сообщения'] == 'внутрироссийское':
         target_row = market_df.loc[(market_df['Наименование груза ЦО-12'] == 'Уголь каменный') &
                (market_df['Вид сообщения'] == 'внутрироссийское') &
                (market_df['Направление'] == 'Общее')].iloc[0]
 
-    if row['Вид сообщения'] == 'экспорт':
+    elif row['Вид сообщения'] == 'экспорт':
         if row['Направление'] == 'Северо-Запад':
             direction ='Северо-Запад'
             price = market_params.get('coal').get('west')
@@ -224,18 +231,18 @@ def market_coefficient(row, market_params):
             (market_df['Направление'] == direction) &
             (market_df['Цена'] == price)].iloc[0]
 
-        if row['growth_percent'] < 0.1:
-            return 1
-        elif row['growth_percent'] < 0.3:
-            return target_row['Увеличение на 10%']
-        elif row['growth_percent'] < 0.5:
-            return target_row['Увеличение на 30%']
-        elif row['growth_percent'] < 0.75:
-            return target_row['Увеличение на 50%']
-        elif row['growth_percent'] < 1:
-            return target_row['Увеличение на 75%']
-        else:
-            return target_row['Увеличение на 100%']
+    if row['growth_percent'] < 0.1:
+        return 1
+    elif row['growth_percent'] < 0.3:
+        return target_row['Увеличение на 10%']
+    elif row['growth_percent'] < 0.5:
+        return target_row['Увеличение на 30%']
+    elif row['growth_percent'] < 0.75:
+        return target_row['Увеличение на 50%']
+    elif row['growth_percent'] < 1:
+        return target_row['Увеличение на 75%']
+    else:
+        return target_row['Увеличение на 100%']
 
 
 
