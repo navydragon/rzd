@@ -28,6 +28,46 @@ class Constants:
     SIDE = 'Направление'
     HOLDING = 'Холдинг отправителя'
 
+
+    # выборки в параметрах
+    COSTS_BASE_VARIANTS = [
+        {'label': 'Тариф по себестоимости (помаршрутный принцип)','value': 'option1'},
+        {'label': 'Тариф по уровню расходов', 'value': 'option2'},
+    ]
+    DIRECTION_VARIANTS = [
+        {'label': 'Среднесетевой', 'value': 'option1'},
+        {'label': 'По 3 зонам', 'value': 'option2'},
+        {'label': 'Комбинированный', 'value': 'option3'},
+        {'label': 'Помаршрутный', 'value': 'option4'}
+    ]
+
+    APPROACH_VARIANTS = [
+        {'label': 'Без дифференциации', 'value': 'option1'},
+        {'label': 'С дифференциацией', 'value': 'option2'},
+    ]
+
+    COSTS_VARIANTS = [
+        {'label': 'Не ниже переменных', 'value': 'option1'},
+        {'label': 'Не ниже полных', 'value': 'option2'},
+    ]
+
+    INVEST_VARIANTS = [
+        {'label': 'Затраты на ремонт инфраструктуры, переквалифицированные в кап. вложения', 'value': 'option1'},
+        {'label': 'Инвестиционная программа ОАО "РЖД"', 'value': 'option2'},
+    ]
+
+    YEAR_VARIANTS = [
+        {'label': year, 'value': str(year)} for year in range(2026, 2031)
+    ]
+
+    TURNOVER_VARIANTS = [
+        {'label': 'Не учитывать','value': 'option1'},
+        {'label': 'Фин. план (апрель)', 'value': 'option2'},
+        {'label': 'Фин. план (май)', 'value': 'option3'},
+    ]
+
+
+
     AGG_PARAMS = {
         P: 'sum',
         EPL: 'sum',
