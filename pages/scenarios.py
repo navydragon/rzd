@@ -1,13 +1,14 @@
 import dash
 from dash import html, dcc,callback, Input, Output, State, ALL
 from pages.helpers import scenario_parameters as sp
-
+from pages.constants import Constants as CON
 import dash_bootstrap_components as dbc
 import pandas as pd
 
 import random
 import string
 import json
+import ast
 
 def generate_random_string(length):
     """Генерирует случайную строку заданной длины"""
@@ -141,17 +142,19 @@ def handle_cards(create_button_clicks, delete_button_clicks, card_children,close
             'year_variant': state_values[7],
             'invest_percent': state_values[8]
         })
-        #scenarios_df = scenarios_df.append(new_row, ignore_index=True)
-        #scenarios_df.to_csv('data/scenarios.csv', index=False)
+        scenarios_df = scenarios_df.append(new_row, ignore_index=True)
+        scenarios_df.to_csv('data/scenarios.csv', index=False)
         updated_children = card_children + [draw_card(new_row)]
-        return updated_children, [close_button_clicks+1]
+        return updated_children, close_button_clicks+1
 
     # удаляем
     clicked_index = json.loads(triggered_id).get('index')
-    print (clicked_index)
     # Удаление соответствующей карточки из списка
     updated_children = [child for child in card_children if child['props']['id'] != clicked_index]
-
+    # удаление из df
+    condition = scenarios_df['id'] == clicked_index
+    scenarios_df = scenarios_df.drop(scenarios_df[condition].index)
+    scenarios_df.to_csv('data/scenarios.csv', index=False)
     return updated_children, [0]
 
 
@@ -161,16 +164,68 @@ def draw_card (row):
                 dbc.CardBody(
                     [
                         html.H4(f"Сценарий «{row['name']}»", className="card-title"),
-                        html.P("Описание параметров сценария №1...",
-                               className="card-text", ),
-                        html.Ul([
-                            html.Li('Горизонт расчета - 2026 г.'), html.Li('...'),
-                        ]),
+                        html.P("Параметры сценария:.", className="card-text", ),
+                        html.Ul(scenario_definition(row)),
+
                         dbc.ButtonGroup([
                             dbc.Button("Рассчитать", color="primary"),
-                            dbc.Button("Изменить", color="info"),
+                           # dbc.Button("Изменить", color="info"),
                             dbc.Button("Удалить", id={'type': 'delete-button', 'index': row['id']}, n_clicks=0, color="danger"),
                         ])
                     ]
                 ),
             ], id=row.id, className='my-2')
+
+
+def scenario_definition(row):
+    res = []
+    res.append(html.Li([
+            html.Strong('Базовая основа для тарифа: '),
+            html.Span(search_in_dicts_list(CON.COSTS_BASE_VARIANTS, row["costs_base_variant"]))
+    ]))
+    if row["costs_base_variant"] == 'option1':
+        res.append(html.Li([
+            html.Strong('Вариант агрегации расходных ставок: '),
+            html.Span(search_in_dicts_list(CON.DIRECTION_VARIANTS, row["direction_variant"]))
+        ]))
+        res.append(html.Li([
+            html.Strong('Дифференциация тарифов между видами грузов: '),
+            html.Span(search_in_dicts_list(CON.APPROACH_VARIANTS, row["approach_variant"]))
+        ]))
+
+    if row["costs_base_variant"] == 'option2':
+        res.append(html.Li([
+            html.Strong('Вид расходов: '),
+            html.Span(search_in_dicts_list(CON.COSTS_VARIANTS, row["costs_variant"]))
+        ]))
+    if len(str(row['invest_variant'])) > 3:
+        inv = ''
+        if type(row['invest_variant']) is not list:
+            options = row['invest_variant'].strip("[]").strip()
+            print(options)
+            options = ast.literal_eval(options)
+        else:
+            options = row['invest_variant']
+        if 'option1' in options:
+            inv += 'Затраты на ремонт инфраструктуры; '
+        if 'option2' in options:
+            inv += f'Инвестиционная программа({row["invest_percent"]}%);'
+    else:
+        inv = 'нет'
+
+    res.append(html.Li([
+        html.Strong('Инвестиционная составляющая: '),
+        html.Span(inv)
+    ]))
+    res.append(html.Li([
+        html.Strong('Тарифный период: '),
+        html.Span(row['year_variant'])
+    ]))
+    return res
+
+def search_in_dicts_list (data, search_value):
+    found_label = None
+    for item in data:
+        if str(item['value']) == str(search_value):
+            return item['label']
+    return None

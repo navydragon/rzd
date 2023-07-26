@@ -278,29 +278,43 @@ def market_conditions():
         dbc.Collapse(
             dbc.Card([
                 dbc.CardBody([dbc.Row([
-                    html.H5("Каменный уголь, экспортные цены, $"),
+                    html.H5("Каменный уголь"),
                     dbc.Col([
-                    html.Label('Восток', className="fw-bold"),
-                    dcc.Slider(
-                        id='market_coal_east',
-                        marks={0: 'Текущие', 50: '50', 100: '100', 150: '150', 200: '200'},
-                        min=0,max=200,step=None,value=0
-                    )],width=4),
+                        html.H6("Экспортные цены, $"),
+                        dbc.Row([
+                            dbc.Col([
+                            html.Label('Восток'),
+                            dcc.Slider(
+                                id='market_coal_east',
+                                marks={0: 'Текущие', 50: '50', 100: '100', 150: '150', 200: '200'},
+                                min=0, max=200, step=None, value=0
+                            )], width=4),
+                            dbc.Col([
+                                html.Label('Запад'),
+                                dcc.Slider(
+                                    id='market_coal_west',
+                                    marks={0: 'Текущие', 50: '50', 100: '100', 150: '150', 200: '200'},
+                                    min=0, max=200, step=None, value=0
+                                )], width=4),
+                            dbc.Col([
+                                html.Label('Юг'),
+                                dcc.Slider(
+                                    id='market_coal_south',
+                                    marks={0: 'Текущие', 50: '50', 100: '100', 150: '150', 200: '200'},
+                                    min=0, max=200, step=None, value=0
+                                )], width=4),
+                        ])
+                    ],width=9),
                     dbc.Col([
-                        html.Label('Запад', className="fw-bold"),
-                        dcc.Slider(
-                            id='market_coal_west',
-                            marks={0: 'Текущие', 50: '50', 100: '100', 150: '150', 200: '200'},
-                            min=0, max=200, step=None, value=0
-                        )], width=4),
-                    dbc.Col([
-                        html.Label('Юг', className="fw-bold"),
-                        dcc.Slider(
-                            id='market_coal_south',
-                            marks={0: 'Текущие', 50: '50', 100: '100', 150: '150', 200: '200'},
-                            min=0, max=200, step=None, value=0
-                        )], width=4)
-        ])])]), id="collapse_market", is_open = False, className='mb-4')
+                        html.H6("Изменение тарифа, %", className='mt-2 mb-4'),
+                        dbc.Col([
+                            dcc.Slider(
+                                id='tarif_coal_change',
+                                marks={0: 'Текущие', 50: '50', 100: '100', 150: '150', 200: '200'},
+                                min=0, max=200, step=None, value=0,
+                            )], width=12),
+                    ],width=3),
+                ])])]), id="collapse_market", is_open = False, className='mb-4')
     ])
 
 @callback(

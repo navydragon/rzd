@@ -12,7 +12,7 @@ def layout():
 
     return html.Div(['Выключено'])
     start_time = time.time()
-    conn = sqlite3.connect('from/db3.db')
+    conn = sqlite3.connect('from/db4.db')
     # query = '''
     # SELECT a.*, b.[2019 Пропорц распр между Расходами полными ВСЕ,%],
     # b.[2019 Пропорц распр между Расходами полными ПО НАПРАВЛЕНИЯМ,%],
